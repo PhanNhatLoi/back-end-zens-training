@@ -1,14 +1,9 @@
-<<<<<<< Updated upstream
-import { IsEmail, IsNotEmpty, IsStrongPassword } from 'class-validator';
-import { Unique } from 'typeorm';
-=======
 import {
   IsEmail,
   IsEmpty,
   IsNotEmpty,
   IsStrongPassword,
 } from 'class-validator';
->>>>>>> Stashed changes
 
 export class CreateUserDto {
   @IsEmail()
@@ -29,6 +24,12 @@ export class CreateUserDto {
   gender: string;
 
   dob: string;
+
+  @IsEmpty()
+  role: string;
+
+  @IsEmpty()
+  id: string;
 }
 
 export class LoginUserDto {

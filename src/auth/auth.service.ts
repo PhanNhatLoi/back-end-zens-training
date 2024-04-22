@@ -22,11 +22,11 @@ export class AuthService {
 
   // register
   async register(createUserDto: CreateUserDto): Promise<User> {
-    const checkEmailUnique = await this.UserModal.findOne({
-      email: createUserDto.email,
+    const checkUsernameUnique = await this.UserModal.findOne({
+      username: createUserDto.username,
     }).exec();
-    if (checkEmailUnique) {
-      throw new ConflictException('Email already exists');
+    if (checkUsernameUnique) {
+      throw new ConflictException('Username already exists!');
     }
     try {
       const passwordHash = await bcrypt.hash(
