@@ -1,4 +1,9 @@
-import { IsEmail, IsNotEmpty, IsStrongPassword } from 'class-validator';
+import {
+  IsEmail,
+  IsEmpty,
+  IsNotEmpty,
+  IsStrongPassword,
+} from 'class-validator';
 import { Unique } from 'typeorm';
 
 @Unique(['email'])
@@ -21,4 +26,10 @@ export class CreateUserDto {
   gender: string;
 
   dob: string;
+
+  @IsEmpty()
+  role: string;
+
+  @IsEmpty()
+  id: string;
 }
