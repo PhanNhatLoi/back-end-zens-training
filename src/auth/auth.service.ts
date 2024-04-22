@@ -3,6 +3,8 @@ import { User } from './schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+const saltOrRounds = 10;
 
 @Injectable()
 export class AuthService {
@@ -10,17 +12,33 @@ export class AuthService {
 
   // register
   async register(createUserDto: CreateUserDto): Promise<User> {
-    const checkEmailUnique = this.UserModal.findOne({
+    const checkEmailUnique = await this.UserModal.findOne({
       email: createUserDto.email,
-    });
+    }).exec();
     if (checkEmailUnique) {
       throw new ConflictException('Email already exists');
     }
-    const newUser = new this.UserModal({
-      ...createUserDto,
-      id: new Date(Date.now()).getTime().toString(),
-    });
+    try {
+      const passwordHash = await bcrypt.hash(
+        createUserDto.password,
+        saltOrRounds,
+      );
+      const newUser = new this.UserModal({
+        ...createUserDto,
+        id: new Date(Date.now()).getTime().toString(),
+        password: passwordHash,
+      });
 
-    return newUser.save();
+      const saveRes = await newUser.save();
+      return saveRes.toObject({
+        transform: (_, ret) => {
+          delete ret.password;
+          delete ret._id;
+          delete ret.__v;
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 }
