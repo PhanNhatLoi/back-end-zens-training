@@ -8,18 +8,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { User } from './schemas/user.schema';
-<<<<<<< Updated upstream
-import { CreateUserDto } from './dto/create-user.dto';
-
-@Controller('api/v1')
-export class AuthController {
-=======
 import { CreateUserDto, LoginUserDto } from './dto/create-user.dto';
 import { AuthGuard } from './auth.guard';
 
 @Controller('api/v1')
 export class AuthControllerV1 {
->>>>>>> Stashed changes
   constructor(private readonly authService: AuthService) {}
 
   @Post('/register')

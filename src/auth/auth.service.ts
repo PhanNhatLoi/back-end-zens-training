@@ -23,10 +23,13 @@ export class AuthService {
   // register
   async register(createUserDto: CreateUserDto): Promise<User> {
     const checkUsernameUnique = await this.UserModal.findOne({
-      username: createUserDto.username,
+      $or: [
+        { username: createUserDto.username },
+        { email: createUserDto.email },
+      ],
     }).exec();
     if (checkUsernameUnique) {
-      throw new ConflictException('Username already exists!');
+      throw new ConflictException('Username or email already exists!');
     }
     try {
       const passwordHash = await bcrypt.hash(
