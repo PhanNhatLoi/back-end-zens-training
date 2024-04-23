@@ -5,7 +5,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { configDotenv } from 'dotenv';
-import { AuthResolver } from './auth.resolver';
 configDotenv();
 
 @Module({
@@ -14,10 +13,10 @@ configDotenv();
     JwtModule.register({
       global: true,
       secret: process.env.jwtConstants_secret,
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: '7d' },
     }),
   ],
   controllers: [AuthControllerV1, AuthControllerV2],
-  providers: [AuthService, AuthResolver],
+  providers: [AuthService],
 })
 export class AuthModule {}

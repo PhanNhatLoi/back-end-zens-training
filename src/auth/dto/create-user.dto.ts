@@ -17,19 +17,19 @@ export class CreateUserDto {
   @IsStrongPassword()
   password: string;
 
-  fullName?: string;
+  fullName: string;
 
-  address?: string;
+  address: string;
 
-  gender?: string;
+  gender: string;
 
-  dob?: string;
-
-  @IsEmpty()
-  role?: string;
+  dob: string;
 
   @IsEmpty()
-  id?: string;
+  role: string;
+
+  @IsEmpty()
+  id: string;
 }
 
 export class LoginUserDto {
