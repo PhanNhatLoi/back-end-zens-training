@@ -15,14 +15,17 @@ import { AuthGuard } from './auth.guard';
 export class AuthControllerV1 {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('/hello')
+  async hello(): Promise<string> {
+    return 'hello';
+  }
   @Post('/register')
   async register(@Body() createUser: CreateUserDto): Promise<User> {
-    // any hardcode to do change after
     return this.authService.register(createUser);
   }
 
   @Post('/login')
-  async lgoin(@Body() user: LoginUserDto): Promise<User> {
+  async login(@Body() user: LoginUserDto): Promise<User> {
     // any hardcode to do change after
     return this.authService.login(user);
   }
