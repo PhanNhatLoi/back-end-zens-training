@@ -40,6 +40,7 @@ export class AuthService {
         ...createUserDto,
         id: new Date(Date.now()).getTime().toString(),
         password: passwordHash,
+        role: 'user',
       });
 
       const saveRes = await newUser.save();
@@ -104,7 +105,6 @@ export class AuthService {
 
   // get profile
   async getProfile(id: string): Promise<User> {
-    // console.log(id, 1234);
     const findUser = await this.UserModal.findOne({
       id: id,
     }).select(['-password', '-_id', '-__v']);
