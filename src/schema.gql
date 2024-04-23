@@ -1,0 +1,26 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AccessToken {
+  access_token: String!
+}
+
+type Query {
+  getProfile(access_token: String!): User!
+  login(password: String!, username: String!): User!
+  loginReturnToken(password: String!, username: String!): AccessToken!
+  register(address: String, dob: String, email: String!, fullName: String!, gender: String, password: String!, username: String!): User!
+}
+
+type User {
+  address: String!
+  dob: String!
+  email: String!
+  fullName: String!
+  gender: String!
+  id: String!
+  password: String!
+  role: String!
+  username: String!
+}
