@@ -33,6 +33,10 @@ async function bootstrap() {
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-bundle.min.js',
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-standalone-preset.min.js',
     ],
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-bundle.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-standalone-preset.min.js',
+    ],
     customCssUrl: [
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui.min.css',
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui.css',
