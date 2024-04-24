@@ -9,11 +9,6 @@ async function bootstrap() {
   const PORT = process.env.PORT || 8000;
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors({
-    origin: '*',
-    methods: '*',
-    allowedHeaders: 'Content-Type,Authorization',
-  });
 
   const config = new DocumentBuilder()
     .setTitle('Social media api')
@@ -32,8 +27,9 @@ async function bootstrap() {
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
+
   SwaggerModule.setup('api', app, document, {
-    customJs: [
+    customJsStr: [
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-bundle.min.js',
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-standalone-preset.min.js',
     ],
