@@ -35,13 +35,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('api', app, document, {
-    customJsStr: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-bundle.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-standalone-preset.min.js',
-    ],
     customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-bundle.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-standalone-preset.min.js',
+      'https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js',
+      'https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js',
     ],
     customCssUrl: [
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui.min.css',
