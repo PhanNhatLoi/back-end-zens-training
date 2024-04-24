@@ -9,7 +9,11 @@ async function bootstrap() {
   const PORT = process.env.PORT || 8000;
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors();
+  app.enableCors({
+    origin: '*',
+    methods: '*',
+    allowedHeaders: 'Content-Type,Authorization',
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Social media api')
