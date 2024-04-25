@@ -1,0 +1,14 @@
+version: '3.5'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: back-end-zens-training
+    environment:
+      - PORT=${PORT}
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./src:/app/src
