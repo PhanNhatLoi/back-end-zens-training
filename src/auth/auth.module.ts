@@ -9,12 +9,14 @@ import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { User, UserSchema } from 'src/user/schemas/user.schema';
+import { UserModule } from 'src/user/user.module';
 configDotenv();
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.register({}),
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [
