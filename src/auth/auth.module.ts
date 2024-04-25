@@ -10,14 +10,11 @@ import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { User, UserSchema } from 'src/user/schemas/user.schema';
 import { UserModule } from 'src/user/user.module';
+import { MongodbModule } from 'src/mongodb/mongodb.module';
 configDotenv();
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    JwtModule.register({}),
-    UserModule,
-  ],
+  imports: [MongodbModule, JwtModule.register({}), UserModule],
   controllers: [AuthController],
   providers: [
     AuthService,
