@@ -1,22 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-import { UserService } from '../user/user.service';
+import { UserService } from './user.service';
 import { configDotenv } from 'dotenv';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { MongodbModule } from '../mongodb/mongodb.module';
 configDotenv();
 
-describe('AuthService', () => {
-  let service: AuthService;
+describe('UserService', () => {
+  let service: UserService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [MongodbModule],
-      providers: [AuthService, UserService, JwtService, ConfigService],
+      providers: [UserService],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
+    service = module.get<UserService>(UserService);
   });
 
   it('should be defined', () => {

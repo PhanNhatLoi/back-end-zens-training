@@ -1,15 +1,21 @@
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from './schemas/user.schema';
+import { User } from '../user/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateUserDto, LoginUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { AuthDto } from '../user/dto/auth-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { UserService } from '../user/user.service';
+import { LoginResponseType } from './types';
 
 const saltOrRounds = 10;
 
@@ -18,16 +24,19 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private UserModal: Model<User>,
     private jwtService: JwtService,
+    private configService: ConfigService,
+    private userService: UserService,
   ) {}
 
   // register
   async register(createUserDto: CreateUserDto): Promise<User> {
-    const checkUsernameUnique = await this.UserModal.findOne({
+    const checkUsernameUnique = await this.userService.findByParams({
       $or: [
         { username: createUserDto.username },
         { email: createUserDto.email },
       ],
-    }).exec();
+    });
+
     if (checkUsernameUnique) {
       throw new ConflictException('Username or email already exists!');
     }
@@ -36,15 +45,18 @@ export class AuthService {
         createUserDto.password,
         saltOrRounds,
       );
-      const newUser = new this.UserModal({
+
+      const newUser = await this.userService.create({
         ...createUserDto,
         id: new Date(Date.now()).getTime().toString(),
         password: passwordHash,
         role: 'user',
       });
 
-      const saveRes = await newUser.save();
-      return saveRes.toObject({
+      const tokens = await this.getTokens(newUser.id, newUser.username);
+      await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+
+      return newUser.toObject({
         transform: (_, ret) => {
           delete ret.password;
           delete ret._id;
@@ -54,64 +66,100 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  // get token
+  async getTokens(userId: string, username: string) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          username,
+        },
+        {
+          secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+          expiresIn: '1h',
+        },
+      ),
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          username,
+        },
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn: '1d',
+        },
+      ),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    const hashedRefreshToken = await this.hashData(refreshToken);
+    await this.userService.update(userId, {
+      refreshToken: hashedRefreshToken,
+    });
+  }
+
+  hashData(data: string) {
+    return bcrypt.hash(data, saltOrRounds);
   }
 
   // login
-  async login(user: LoginUserDto): Promise<User> {
-    const findUser = await this.UserModal.findOne({
-      username: user.username,
-    }).exec();
-    if (!findUser) {
-      throw new UnauthorizedException('Username not found!');
+  async login(data: AuthDto): Promise<LoginResponseType> {
+    const user = await this.userService.findByParams({
+      username: data.username,
+    });
+    if (!user) {
+      throw new BadRequestException('Username not found!');
     }
     try {
-      const isMatch = await bcrypt.compare(user.password, findUser.password);
+      const isMatch = await bcrypt.compare(data.password, user.password);
       if (!isMatch) throw new UnauthorizedException('Password wrong!');
 
-      return findUser.toObject({
-        transform: (_, ret) => {
-          delete ret.password;
-          delete ret._id;
-          delete ret.__v;
-        },
-      });
+      const tokens = await this.getTokens(user.id, user.username);
+      await this.updateRefreshToken(user.id, tokens.refreshToken);
+      return tokens;
     } catch (error) {
       throw error;
     }
   }
 
-  // login return token
-  async loginReturnToken(
-    user: LoginUserDto,
-  ): Promise<{ access_token: string }> {
-    const findUser = await this.UserModal.findOne({
-      username: user.username,
-    }).exec();
-    if (!findUser) {
-      throw new UnauthorizedException('Username not found!');
-    }
-    try {
-      const isMatch = await bcrypt.compare(user.password, findUser.password);
-      if (!isMatch) throw new UnauthorizedException('Password wrong!');
-
-      const payload = { sub: findUser.id, username: findUser.username };
-      return {
-        access_token: await this.jwtService.signAsync(payload),
-      };
-    } catch (error) {
-      throw error;
-    }
+  async logout(userId: string) {
+    return this.userService.update(userId, { refreshToken: null });
   }
 
-  // get profile
   async getProfile(id: string): Promise<User> {
     const findUser = await this.UserModal.findOne({
       id: id,
-    }).select(['-password', '-_id', '-__v']);
+    }).select(['-password', '-_id', '-__v', '-refreshToken']);
     if (!findUser) {
       throw new InternalServerErrorException('Data error!');
     }
 
     return findUser;
+  }
+
+  // refresh token
+  async refreshTokens(
+    id: string,
+    refreshToken: string,
+  ): Promise<LoginResponseType> {
+    const user = await this.userService.findByParams({ id });
+    if (!user || !user.refreshToken)
+      throw new ForbiddenException('Access Denied');
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
+    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+    const tokens = await this.getTokens(user.id, user.username);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+    return tokens;
   }
 }
