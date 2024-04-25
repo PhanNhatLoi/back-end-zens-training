@@ -11,13 +11,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { AuthDto } from '../user/dto/auth-user.dto';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
 import { LoginResponseType } from './types';
-
-const saltOrRounds = 10;
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class AuthService {
@@ -41,10 +39,7 @@ export class AuthService {
       throw new ConflictException('Username or email already exists!');
     }
     try {
-      const passwordHash = await bcrypt.hash(
-        createUserDto.password,
-        saltOrRounds,
-      );
+      const passwordHash = await argon2.hash(createUserDto.password);
 
       const newUser = await this.userService.create({
         ...createUserDto,
@@ -107,7 +102,7 @@ export class AuthService {
   }
 
   hashData(data: string) {
-    return bcrypt.hash(data, saltOrRounds);
+    return argon2.hash(data);
   }
 
   // login
@@ -119,7 +114,7 @@ export class AuthService {
       throw new BadRequestException('Username not found!');
     }
     try {
-      const isMatch = await bcrypt.compare(data.password, user.password);
+      const isMatch = await argon2.verify(user.password, data.password);
       if (!isMatch) throw new UnauthorizedException('Password wrong!');
 
       const tokens = await this.getTokens(user.id, user.username);
@@ -153,9 +148,9 @@ export class AuthService {
     const user = await this.userService.findByParams({ id });
     if (!user || !user.refreshToken)
       throw new ForbiddenException('Access Denied');
-    const refreshTokenMatches = await bcrypt.compare(
-      refreshToken,
+    const refreshTokenMatches = await argon2.verify(
       user.refreshToken,
+      refreshToken,
     );
     if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
     const tokens = await this.getTokens(user.id, user.username);
