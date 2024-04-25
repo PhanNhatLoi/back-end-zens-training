@@ -1,15 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-import { UserService } from '../user/user.service';
+import { UserService } from './user.service';
+import { User, UserSchema } from './schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '../user/schemas/user.schema';
 import { configDotenv } from 'dotenv';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 configDotenv();
 
-describe('AuthService', () => {
-  let service: AuthService;
+describe('UserService', () => {
+  let service: UserService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -17,10 +14,10 @@ describe('AuthService', () => {
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         MongooseModule.forRoot(process.env.MONGODB_URI + process.env.DB_NAME),
       ],
-      providers: [AuthService, UserService, JwtService, ConfigService],
+      providers: [UserService],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
+    service = module.get<UserService>(UserService);
   });
 
   it('should be defined', () => {
