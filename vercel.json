@@ -8,10 +8,6 @@
   ],
   "routes": [
     {
-      "src": "/src/schema.gql",
-      "dest": "/src/schema.gql"
-    },
-    {
       "src": "/(.*)",
       "dest": "src/main.ts"
     }
