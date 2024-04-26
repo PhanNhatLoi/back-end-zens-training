@@ -9,9 +9,7 @@
   "routes": [
     {
       "src": "/src/schema.gql",
-      "headers": {
-        "Access-Control-Allow-Origin": "*"
-      }
+      "dest": "/src/schema.gql"
     },
     {
       "src": "/(.*)",
