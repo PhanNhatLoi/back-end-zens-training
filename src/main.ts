@@ -3,7 +3,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
+// import * as cookieParser from 'cookie-parser';
+import * as session from 'express-session';
+
 configDotenv();
 
 async function bootstrap() {
@@ -16,8 +18,15 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization',
     credentials: true,
   });
-  app.use(cookieParser());
 
+  // app.use(cookieParser());
+  app.use(
+    session({
+      secret: 'my-secret',
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
   const config = new DocumentBuilder()
     .setTitle('Social media api')
     .setDescription('The Social media API description')
@@ -42,7 +51,7 @@ async function bootstrap() {
         type: 'http', // I`ve attempted type: 'apiKey' too
         in: 'Header',
       },
-      'refreshToken',
+      'refreshjToken',
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
