@@ -3,9 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-// import * as cookieParser from 'cookie-parser';
-const session = require('express-session');
-
+const cookieParser = require('cookie-parser');
 configDotenv();
 
 async function bootstrap() {
@@ -19,14 +17,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // app.use(cookieParser());
-  app.use(
-    session({
-      secret: 'my-secret',
-      resave: false,
-      saveUninitialized: false,
-    }),
-  );
+  app.use(cookieParser());
   const config = new DocumentBuilder()
     .setTitle('Social media api')
     .setDescription('The Social media API description')

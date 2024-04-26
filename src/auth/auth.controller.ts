@@ -187,16 +187,16 @@ export class AuthController {
     @Body() { email }: { email: string },
   ): Promise<string> {
     // hạn chế gửi quá nhiều email, sau 3p mới được gửi lại request forgot-password mới
-    // const forgotCode = req.cookies[`forgot-pw-${email}`];
-    // if (forgotCode)
-    //   throw new GatewayTimeoutException(
-    //     'You just sent an email, please try again after 3 minutes!',
-    //   );
-    // const code = await this.authService.forgotPassword(email);
-    // res.cookie(`forgot-pw-${email}`, code, {
-    //   httpOnly: true,
-    //   maxAge: 3 * 60 * 1000, // code có thời hạn trong 3p
-    // });
+    const forgotCode = req.cookies[`forgot-pw-${email}`];
+    if (forgotCode)
+      throw new GatewayTimeoutException(
+        'You just sent an email, please try again after 3 minutes!',
+      );
+    const code = await this.authService.forgotPassword(email);
+    res.cookie(`forgot-pw-${email}`, code, {
+      httpOnly: true,
+      maxAge: 3 * 60 * 1000, // code có thời hạn trong 3p
+    });
     return 'Send email success';
   }
 
@@ -218,11 +218,10 @@ export class AuthController {
     @Body() body: ChangePasswordUserDto,
     @Req() req,
   ): Promise<String> {
-    // const forgotCode = req.cookies[`forgot-pw-${body.email}`];
-    // if (!forgotCode || forgotCode !== body.code) {
-    //   throw new BadRequestException('Change password code wrong!');
-    // }
-    // return this.authService.changePassword(body);
-    return 'success';
+    const forgotCode = req.cookies[`forgot-pw-${body.email}`];
+    if (!forgotCode || forgotCode !== body.code) {
+      throw new BadRequestException('Change password code wrong!');
+    }
+    return this.authService.changePassword(body);
   }
 }
