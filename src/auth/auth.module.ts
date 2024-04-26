@@ -10,6 +10,7 @@ import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
 import { MongodbModule } from '../mongodb/mongodb.module';
 import { SendmailService } from '../sendmail/sendmail.service';
+import { AuthResolver } from './auth.resolver';
 configDotenv();
 
 @Module({
@@ -22,6 +23,7 @@ configDotenv();
     ConfigService,
     UserService,
     SendmailService,
+    AuthResolver,
   ],
 })
 export class AuthModule {}
