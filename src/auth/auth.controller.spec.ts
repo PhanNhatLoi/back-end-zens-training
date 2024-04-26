@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { configDotenv } from 'dotenv';
 import { MongodbModule } from '../mongodb/mongodb.module';
+import { SendmailService } from '../sendmail/sendmail.service';
 configDotenv();
 
 describe('AuthController', () => {
@@ -15,7 +16,13 @@ describe('AuthController', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [MongodbModule],
       controllers: [AuthController],
-      providers: [AuthService, UserService, JwtService, ConfigService],
+      providers: [
+        AuthService,
+        UserService,
+        JwtService,
+        ConfigService,
+        SendmailService,
+      ],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);

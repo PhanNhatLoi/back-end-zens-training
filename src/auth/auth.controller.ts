@@ -5,6 +5,11 @@ import {
   Post,
   UseGuards,
   Request,
+  Req,
+  Res,
+  Put,
+  BadRequestException,
+  GatewayTimeoutException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { User } from '../user/schemas/user.schema';
@@ -14,6 +19,7 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiGatewayTimeoutResponse,
   ApiHeader,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -23,6 +29,7 @@ import { AuthDto } from '../user/dto/auth-user.dto';
 import { LoginResponseType } from './types';
 import { AccessTokenGuard } from '../common/guards/accessToken.guard';
 import { RefreshTokenGuard } from '../common/guards/refreshToken.guard';
+import { ChangePasswordUserDto } from '../user/dto/change-password-user.dto';
 
 @ApiTags('auth')
 @Controller('api')
@@ -68,9 +75,6 @@ export class AuthController {
   }
 
   // login
-  @ApiBody({
-    type: AuthDto,
-  })
   @ApiBody({
     schema: {
       example: {
@@ -159,5 +163,65 @@ export class AuthController {
       req.user['sub'],
       req.user['refreshToken'],
     );
+  }
+
+  // forgot password
+  @ApiBody({
+    schema: {
+      example: {
+        email: 'user@example.com',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'email not found!' })
+  @ApiGatewayTimeoutResponse({
+    description: 'You just sent an email, please try again after 3 minutes!',
+  })
+  @ApiCreatedResponse({
+    description: 'Send email success',
+  })
+  @Post('/forgot-password')
+  async forgotPassword(
+    @Res({ passthrough: true }) res,
+    @Req() req,
+    @Body() { email }: { email: string },
+  ): Promise<string> {
+    // hạn chế gửi quá nhiều email, sau 3p mới được gửi lại request forgot-password mới
+    const forgotCode = req.cookies[`forgot-pw-${email}`];
+    if (forgotCode)
+      throw new GatewayTimeoutException(
+        'You just sent an email, please try again after 3 minutes!',
+      );
+    const code = await this.authService.forgotPassword(email);
+    res.cookie(`forgot-pw-${email}`, code, {
+      httpOnly: true,
+      maxAge: 3 * 60 * 1000, // code có thời hạn trong 3p
+    });
+    return 'Send email success';
+  }
+
+  @ApiBody({
+    schema: {
+      example: {
+        email: 'user@example.com',
+        password: '123456@Abc',
+        code: '123456',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Change password code wrong!' })
+  @ApiCreatedResponse({
+    description: 'Change password success',
+  })
+  @Put('/change-password')
+  async changePassword(
+    @Body() body: ChangePasswordUserDto,
+    @Req() req,
+  ): Promise<String> {
+    const forgotCode = req.cookies[`forgot-pw-${body.email}`];
+    if (!forgotCode || forgotCode !== body.code) {
+      throw new BadRequestException('Change password code wrong!');
+    }
+    return this.authService.changePassword(body);
   }
 }

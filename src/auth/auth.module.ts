@@ -6,9 +6,10 @@ import { configDotenv } from 'dotenv';
 import { AccessTokenStrategy } from './strategies/accessToken.strategy';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { ConfigService } from '@nestjs/config';
-import { UserService } from 'src/user/user.service';
-import { UserModule } from 'src/user/user.module';
-import { MongodbModule } from 'src/mongodb/mongodb.module';
+import { UserService } from '../user/user.service';
+import { UserModule } from '../user/user.module';
+import { MongodbModule } from '../mongodb/mongodb.module';
+import { SendmailService } from '../sendmail/sendmail.service';
 configDotenv();
 
 @Module({
@@ -20,6 +21,7 @@ configDotenv();
     RefreshTokenStrategy,
     ConfigService,
     UserService,
+    SendmailService,
   ],
 })
 export class AuthModule {}
