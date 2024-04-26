@@ -16,6 +16,8 @@ import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
 import { LoginResponseType } from './types';
 import * as argon2 from 'argon2';
+import { SendmailService } from '../sendmail/sendmail.service';
+import { ChangePasswordUserDto } from '../user/dto/change-password-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +26,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private userService: UserService,
+    private sendMailService: SendmailService,
   ) {}
 
   // register
@@ -39,7 +42,7 @@ export class AuthService {
       throw new ConflictException('Username or email already exists!');
     }
     try {
-      const passwordHash = await argon2.hash(createUserDto.password);
+      const passwordHash = await this.hashData(createUserDto.password);
 
       const newUser = await this.userService.create({
         ...createUserDto,
@@ -156,5 +159,31 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.username);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
     return tokens;
+  }
+
+  async forgotPassword(email: string): Promise<string> {
+    // check email có tồn tại không
+    const user = await this.userService.findByParams({ email: email });
+    if (!user) throw new BadRequestException('email not found!');
+    const newCode = Math.floor(100000 + Math.random() * 900000).toString(); //generate code 6 digit
+    try {
+      await this.sendMailService.sendmail({
+        sendTo: email,
+        subject: '<noreply> This is email forgot password',
+        content: newCode,
+      });
+      return newCode;
+    } catch (error) {
+      throw new InternalServerErrorException('Server error');
+    }
+  }
+
+  async changePassword(body: ChangePasswordUserDto): Promise<string> {
+    const user = await this.userService.findByParams({ email: body.email });
+    if (!user) throw new BadRequestException('User not found!');
+
+    const passwordHash = await this.hashData(body.password);
+    await this.userService.update(user.id, { password: passwordHash });
+    return 'Change password success';
   }
 }

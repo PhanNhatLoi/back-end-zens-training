@@ -11,3 +11,13 @@ headers :{Authorization: Bearer <refreshToken>}
 Tại server xác thực refreshToken này, nếu xác thực thành công, tiếp tục getTokens() và ghi lại accessToken, refreshToken với thời hạn mới.
 
 <!-- AccessToken and RefreshToken -->
+
+<!-- forgot password -->
+
+client call api có body là email đăng ký.
+Tại server generate 1 otp 6 số và ghi vào cookie. // thời hạn 3p
+soạn một email forgot password gửi về email được điền.
+Client gửi api change password có body gồm: email, password, otp code
+Từ Server kiểm tra email và otp đó có tương ứng hay không và tiến hành thay đổi mật khẩu
+
+<!-- forgot password -->
