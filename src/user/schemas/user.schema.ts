@@ -34,6 +34,12 @@ export class User {
 
   @Prop()
   refreshToken: string;
+
+  @Prop()
+  otpCode: string;
+
+  @Prop()
+  otpExr: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

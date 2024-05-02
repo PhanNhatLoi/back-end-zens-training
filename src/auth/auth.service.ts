@@ -76,7 +76,7 @@ export class AuthService {
         },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-          expiresIn: '1h',
+          expiresIn: '1m',
         },
       ),
       this.jwtService.signAsync(
@@ -135,7 +135,14 @@ export class AuthService {
   async getProfile(id: string): Promise<User> {
     const findUser = await this.UserModal.findOne({
       id: id,
-    }).select(['-password', '-_id', '-__v', '-refreshToken']);
+    }).select([
+      '-password',
+      '-_id',
+      '-__v',
+      '-refreshToken',
+      '-otpCode',
+      '-otpExr',
+    ]);
     if (!findUser) {
       throw new InternalServerErrorException('Data error!');
     }
@@ -164,6 +171,9 @@ export class AuthService {
   async forgotPassword(email: string): Promise<string> {
     // check email có tồn tại không
     const user = await this.userService.findByParams({ email: email });
+    if (new Date(Date.now()) <= user.otpExr) {
+      throw new BadRequestException('Try again after 3 minutes!');
+    }
     if (!user) throw new BadRequestException('email not found!');
     const newCode = Math.floor(100000 + Math.random() * 900000).toString(); //generate code 6 digit
     try {
@@ -172,6 +182,10 @@ export class AuthService {
         subject: '<noreply> This is email forgot password',
         content: newCode,
       });
+      await this.userService.update(user.id, {
+        otpCode: newCode,
+        otpExr: new Date(Date.now() + 60 * 1000 * 3), // add 3p
+      });
       return newCode;
     } catch (error) {
       throw new InternalServerErrorException('Server error');
@@ -179,8 +193,13 @@ export class AuthService {
   }
 
   async changePassword(body: ChangePasswordUserDto): Promise<string> {
-    const user = await this.userService.findByParams({ email: body.email });
-    if (!user) throw new BadRequestException('User not found!');
+    const user = await this.userService.findByParams({
+      email: body.email,
+      otpCode: body.code,
+    });
+    if (!user) throw new BadRequestException('email or otp wrong!');
+    if (body.code !== user.otpCode || new Date(Date.now()) > user.otpExr)
+      throw new BadRequestException('otp code is expired!');
 
     const passwordHash = await this.hashData(body.password);
     await this.userService.update(user.id, { password: passwordHash });

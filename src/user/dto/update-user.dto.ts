@@ -20,4 +20,10 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional()
   refreshToken?: string;
+
+  @ApiPropertyOptional()
+  otpCode?: string;
+
+  @ApiPropertyOptional()
+  otpExr?: Date;
 }
