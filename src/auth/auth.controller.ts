@@ -181,22 +181,8 @@ export class AuthController {
     description: 'Send email success',
   })
   @Post('/forgot-password')
-  async forgotPassword(
-    @Res({ passthrough: true }) res,
-    @Req() req,
-    @Body() { email }: { email: string },
-  ): Promise<string> {
-    // hạn chế gửi quá nhiều email, sau 3p mới được gửi lại request forgot-password mới
-    const forgotCode = req.cookies[`forgot-pw-${email}`];
-    if (forgotCode)
-      throw new GatewayTimeoutException(
-        'You just sent an email, please try again after 3 minutes!',
-      );
-    const code = await this.authService.forgotPassword(email);
-    res.cookie(`forgot-pw-${email}`, code, {
-      httpOnly: true,
-      maxAge: 3 * 60 * 1000, // code có thời hạn trong 3p
-    });
+  async forgotPassword(@Body() { email }: { email: string }): Promise<string> {
+    await this.authService.forgotPassword(email);
     return 'Send email success';
   }
 
@@ -214,14 +200,7 @@ export class AuthController {
     description: 'Change password success',
   })
   @Put('/change-password')
-  async changePassword(
-    @Body() body: ChangePasswordUserDto,
-    @Req() req,
-  ): Promise<String> {
-    const forgotCode = req.cookies[`forgot-pw-${body.email}`];
-    if (!forgotCode || forgotCode !== body.code) {
-      throw new BadRequestException('Change password code wrong!');
-    }
+  async changePassword(@Body() body: ChangePasswordUserDto): Promise<String> {
     return this.authService.changePassword(body);
   }
 }
